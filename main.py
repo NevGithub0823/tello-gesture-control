@@ -32,6 +32,7 @@ def get_args():
     parser.add("--buffer_len",
                help='Length of gesture buffer',
                type=int)
+    parser.add("--use_webcam",help='Use webcam instead of tello camera for detecting gestures',type=bool)
 
     args = parser.parse_args()
 
@@ -59,6 +60,7 @@ def main():
 
     # Argument parsing
     args = get_args()
+    USE_WEBCAM=args.use_webcam
     KEYBOARD_CONTROL = args.is_keyboard
     WRITE_CONTROL = False
     in_flight = False
@@ -69,6 +71,7 @@ def main():
     tello.streamon()
 
     cap = tello.get_frame_read()
+    cap_webcam=cv.VideoCapture(0)
 
     # Init Tello Controllers
     gesture_controller = TelloGestureController(tello)
@@ -135,7 +138,7 @@ def main():
                 number = key - 48
 
         # Camera capture
-        image = cap.frame
+        image = cap_webcam.read() if USE_WEBCAM else cap.frame
 
         debug_image, gesture_id = gesture_detector.recognize(image, number, mode)
         gesture_buffer.add_gesture(gesture_id)
@@ -147,7 +150,8 @@ def main():
         debug_image = gesture_detector.draw_info(debug_image, fps, mode, number)
 
         # Battery status and image rendering
-        cv.putText(debug_image, "Battery: {}".format(battery_status), (5, 720 - 5),
+        battery_str_postion = (5, 100) if USE_WEBCAM else (5, 720 - 5)
+        cv.putText(debug_image, "Battery: {}".format(battery_status), battery_str_postion,
                    cv.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
         cv.imshow('Tello Gesture Recognition', debug_image)
 
