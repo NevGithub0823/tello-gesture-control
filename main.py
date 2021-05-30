@@ -17,22 +17,31 @@ def get_args():
     print('## Reading configuration ##')
     parser = configargparse.ArgParser(default_config_files=['config.txt'])
 
-    parser.add('-c', '--my-config', required=False, is_config_file=True, help='config file path')
+    parser.add('-c',
+               '--my-config',
+               required=False,
+               is_config_file=True,
+               help='config file path')
     parser.add("--device", type=int)
     parser.add("--width", help='cap width', type=int)
     parser.add("--height", help='cap height', type=int)
-    parser.add("--is_keyboard", help='To use Keyboard control by default', action='store_true')
-    parser.add('--use_static_image_mode', help='True if running on photos', action='store_true')
+    parser.add("--is_keyboard",
+               help='To use Keyboard control by default',
+               action='store_true')
+    parser.add('--use_static_image_mode',
+               help='True if running on photos',
+               action='store_true')
     parser.add("--min_detection_confidence",
                help='min_detection_confidence',
                type=float)
     parser.add("--min_tracking_confidence",
                help='min_tracking_confidence',
                type=float)
-    parser.add("--buffer_len",
-               help='Length of gesture buffer',
-               type=int)
-    parser.add("--use_webcam",help='Use webcam instead of tello camera for detecting gestures',action='store_true')
+    parser.add("--buffer_len", help='Length of gesture buffer', type=int)
+    parser.add(
+        "--use_webcam",
+        help='Use webcam instead of tello camera for detecting gestures',
+        action='store_true')
 
     args = parser.parse_args()
 
@@ -60,7 +69,7 @@ def main():
 
     # Argument parsing
     args = get_args()
-    USE_WEBCAM=args.use_webcam
+    USE_WEBCAM = args.use_webcam
     KEYBOARD_CONTROL = args.is_keyboard
     WRITE_CONTROL = False
     in_flight = False
@@ -71,13 +80,14 @@ def main():
     tello.streamon()
 
     cap = tello.get_frame_read()
-    cap_webcam=cv.VideoCapture(0)
+    cap_webcam = cv.VideoCapture(0)
 
     # Init Tello Controllers
     gesture_controller = TelloGestureController(tello)
     keyboard_controller = TelloKeyboardController(tello)
 
-    gesture_detector = GestureRecognition(args.use_static_image_mode, args.min_detection_confidence,
+    gesture_detector = GestureRecognition(args.use_static_image_mode,
+                                          args.min_detection_confidence,
                                           args.min_tracking_confidence)
     gesture_buffer = GestureBuffer(buffer_len=args.buffer_len)
 
@@ -143,23 +153,39 @@ def main():
                 number = key - 48
 
         # Camera capture
-        s, image = cap_webcam.read() if USE_WEBCAM else cap.frame # s is not used, but is returned
+        s, image = cap_webcam.read(
+        ) if USE_WEBCAM else cap.frame  # s is not used, but is returned
 
-        debug_image, gesture_id = gesture_detector.recognize(image, number, mode)
+        debug_image, gesture_id = gesture_detector.recognize(
+            image, number, mode)
         gesture_buffer.add_gesture(gesture_id)
 
         # Start control thread
-        threading.Thread(target=tello_control, args=(key, keyboard_controller, gesture_controller,)).start()
-        threading.Thread(target=tello_battery, args=(tello,)).start()
+        threading.Thread(target=tello_control,
+                         args=(
+                             key,
+                             keyboard_controller,
+                             gesture_controller,
+                         )).start()
+        threading.Thread(target=tello_battery, args=(tello, )).start()
 
-        debug_image = gesture_detector.draw_info(debug_image, fps, mode, number)
+        debug_image = gesture_detector.draw_info(debug_image, fps, mode,
+                                                 number)
 
-        # Battery status and image rendering
-        battery_str_postion = (5, 100) if USE_WEBCAM else (5, 720 - 5)
-        cv.putText(debug_image, "Battery: {}".format(battery_status), battery_str_postion,
-                   cv.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+        # Battery status
+        battery_str_pos = (5, 100) if USE_WEBCAM else (5, 720 - 5)
+        cv.putText(debug_image, "Battery: {}".format(battery_status),
+                   battery_str_pos, cv.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+
+        # Control status
+        control_str_pos = (5, 65)
+        cv.putText(
+            debug_image,
+            '{} control'.format('Keyboard' if KEYBOARD_CONTROL else 'Gesture'),
+            control_str_pos, cv.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+
+        # Image rendering
         cv.imshow('Tello Gesture Recognition', debug_image)
-
     tello.land()
     tello.end()
     cv.destroyAllWindows()
