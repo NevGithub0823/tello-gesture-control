@@ -100,7 +100,7 @@ def main():
     number = -1
     battery_status = -1
 
-    tello.move_down(20)
+    # tello.move_down(20) # idk what this line was for, commenting it out
 
     while True:
         fps = cv_fps_calc.get()
@@ -110,15 +110,20 @@ def main():
         if key == 27:  # ESC
             break
         elif key == 32:  # Space
-            if not in_flight:
-                # Take-off drone
-                tello.takeoff()
-                in_flight = True
 
-            elif in_flight:
-                # Land tello
-                tello.land()
-                in_flight = False
+            # sometimes it fails, doesn't matter, keep going
+            try:
+                if not in_flight:
+                    # Take-off drone
+                    tello.takeoff()
+                    in_flight = True
+
+                elif in_flight:
+                    # Land tello
+                    tello.land()
+                    in_flight = False
+            except:
+                pass
 
         elif key == ord('k'):
             mode = 0
@@ -138,7 +143,7 @@ def main():
                 number = key - 48
 
         # Camera capture
-        image = cap_webcam.read() if USE_WEBCAM else cap.frame
+        s, image = cap_webcam.read() if USE_WEBCAM else cap.frame # s is not used, but is returned
 
         debug_image, gesture_id = gesture_detector.recognize(image, number, mode)
         gesture_buffer.add_gesture(gesture_id)
