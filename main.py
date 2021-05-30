@@ -21,8 +21,8 @@ def get_args():
     parser.add("--device", type=int)
     parser.add("--width", help='cap width', type=int)
     parser.add("--height", help='cap height', type=int)
-    parser.add("--is_keyboard", help='To use Keyboard control by default', type=bool)
-    parser.add('--use_static_image_mode', action='store_true', help='True if running on photos')
+    parser.add("--is_keyboard", help='To use Keyboard control by default', action='store_true')
+    parser.add('--use_static_image_mode', help='True if running on photos', action='store_true')
     parser.add("--min_detection_confidence",
                help='min_detection_confidence',
                type=float)
@@ -32,7 +32,7 @@ def get_args():
     parser.add("--buffer_len",
                help='Length of gesture buffer',
                type=int)
-    parser.add("--use_webcam",help='Use webcam instead of tello camera for detecting gestures',type=bool)
+    parser.add("--use_webcam",help='Use webcam instead of tello camera for detecting gestures',action='store_true')
 
     args = parser.parse_args()
 
