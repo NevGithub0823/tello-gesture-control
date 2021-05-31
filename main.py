@@ -18,7 +18,7 @@ def get_args():
     parser = configargparse.ArgParser(default_config_files=['config.txt'])
 
     parser.add('-c',
-               '--my-config',
+               '--my_config',
                required=False,
                is_config_file=True,
                help='config file path')
@@ -76,8 +76,8 @@ def main():
 
     # Camera preparation
     tello = Tello()
-    tello.connect()
-    tello.streamon()
+    if not tello.connect() or not tello.streamon():
+        exit()
 
     cap = tello.get_frame_read()
     cap_webcam = cv.VideoCapture(0)
@@ -118,6 +118,9 @@ def main():
         # Process Key (ESC: end)
         key = cv.waitKey(1) & 0xff
         if key == 27:  # ESC
+            tello.land()
+            tello.end()
+            cv.destroyAllWindows()
             break
         elif key == 32:  # Space
 
@@ -153,8 +156,8 @@ def main():
                 number = key - 48
 
         # Camera capture
-        s, image = cap_webcam.read(
-        ) if USE_WEBCAM else cap.frame  # s is not used, but is returned
+        # s is not used, but is returned
+        s, image = cap_webcam.read() if USE_WEBCAM else 0, cap.frame
 
         debug_image, gesture_id = gesture_detector.recognize(
             image, number, mode)
@@ -184,11 +187,16 @@ def main():
             '{} control'.format('Keyboard' if KEYBOARD_CONTROL else 'Gesture'),
             control_str_pos, cv.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
+        # Other
+        cv.putText(debug_image, 'Webcam: {}'.format(USE_WEBCAM.__str__()), (5, 135),
+                   cv.FONT_HERSHEY_SIMPLEX, 1, (255, 186, 82), 2)
+        cv.putText(debug_image, 'In flight: {}'.format(in_flight.__str__()),
+                   (5, 170), cv.FONT_HERSHEY_SIMPLEX, 1, (255, 186, 82), 2)
+        cv.putText(debug_image, 'Can takeoff: {}'.format((battery_status > 11).__str__()),
+                   (5, 205), cv.FONT_HERSHEY_SIMPLEX, 1, (255, 120, 8), 2)
+
         # Image rendering
         cv.imshow('Tello Gesture Recognition', debug_image)
-    tello.land()
-    tello.end()
-    cv.destroyAllWindows()
 
 
 if __name__ == '__main__':
