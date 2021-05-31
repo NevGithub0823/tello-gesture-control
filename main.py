@@ -101,7 +101,10 @@ def main():
 
     def tello_battery(tello):
         global battery_status
-        battery_status = tello.get_battery()
+        try:
+            battery_status = tello.get_battery()
+        except:
+            battery_status = -1
 
     # FPS Measurement
     cv_fps_calc = CvFpsCalc(buffer_len=10)
@@ -192,8 +195,6 @@ def main():
                    cv.FONT_HERSHEY_SIMPLEX, 1, (255, 186, 82), 2)
         cv.putText(debug_image, 'In flight: {}'.format(in_flight.__str__()),
                    (5, 170), cv.FONT_HERSHEY_SIMPLEX, 1, (255, 186, 82), 2)
-        cv.putText(debug_image, 'Can takeoff: {}'.format((battery_status > 11).__str__()),
-                   (5, 205), cv.FONT_HERSHEY_SIMPLEX, 1, (255, 120, 8), 2)
 
         # Image rendering
         cv.imshow('Tello Gesture Recognition', debug_image)
