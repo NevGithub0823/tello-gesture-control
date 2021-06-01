@@ -102,7 +102,7 @@ def main():
     def tello_battery(tello):
         global battery_status
         try:
-            battery_status = tello.get_battery()
+            battery_status = tello.get_battery()[:-2]
         except:
             battery_status = -1
 
@@ -191,10 +191,10 @@ def main():
             control_str_pos, cv.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
         # Other
-        cv.putText(debug_image, 'Webcam: {}'.format(USE_WEBCAM.__str__()), (5, 135),
+        cv.putText(debug_image, 'Webcam: {}'.format(USE_WEBCAM.__str__()), (5, 110),
                    cv.FONT_HERSHEY_SIMPLEX, 1, (255, 186, 82), 2)
         cv.putText(debug_image, 'In flight: {}'.format(in_flight.__str__()),
-                   (5, 170), cv.FONT_HERSHEY_SIMPLEX, 1, (255, 186, 82), 2)
+                   (5, 145), cv.FONT_HERSHEY_SIMPLEX, 1, (255, 186, 82), 2)
 
         # Image rendering
         cv.imshow('Tello Gesture Recognition', debug_image)
